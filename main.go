@@ -24,7 +24,14 @@ type Address struct {
 var people []Person
 
 func GetPersonEndpoint(w http.ResponseWriter, req *http.Request) {
-
+	params := mux.Vars(req)
+	for _, item := range people {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(&Person{})
 }
 
 func GetPeopleEndpoint(w http.ResponseWriter, req *http.Request) {
@@ -33,11 +40,25 @@ func GetPeopleEndpoint(w http.ResponseWriter, req *http.Request) {
 }
 
 func CreatePersonEndpoint(w http.ResponseWriter, req *http.Request) {
-
+	params := mux.Vars(req)
+	var person Person
+	// take the JSON data from the body and marshalled to the Person struct
+	_ = json.NewDecoder(req.Body).Decode(&person)
+	person.ID = params["id"]
+	// append to the people slices
+	people = append(people, person)
+	json.NewEncoder(w).Encode(people)
 }
 
 func DeletePersonEndpoint(w http.ResponseWriter, req *http.Request) {
-
+	params := mux.Vars(req)
+	for index, item := range people {
+		if item.ID == params["id"] {
+			people = append(people[:index], people[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(people)
 }
 
 func main() {
